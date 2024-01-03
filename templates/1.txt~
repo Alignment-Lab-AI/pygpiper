@@ -1,0 +1,30 @@
+CONTEXT:
+{{{row}}}
+/CONTEXT
+
+/CONTEXT
+given the previous context,
+
+look at the following labels, assign a value to each speaker indicating  how each speaker did over the course of the conversation, in the example column, be sure to cite a specific moment in the conversation and advice on how to have a more natural, expressive conversation or roleplay.  avoid considering moral elements assume the actual quality of the conversation in terms of realism and narrative depth. 
+
+if the conversation does not have one of the following qualities (most conversations will not have many of them)  simply mark zero as the score and n/a as the turn
+
+your score is granular and on the scale of 0 - 100 with 100 indicating the speaker was unable to communicate productively due to the issue 
+critique = [
+    ('Incoherent Responses', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Limited Engagement', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Repetitive Patterns', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Misinterpretation', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Delayed Responses', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Off-Topic Replies', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Lack of Depth', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Inaccuracies', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Over-Simplicity', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Lack of Personalization', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Failure to Clarify', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Non-Sequitur Responses', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Lack of Contextual Awareness', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...}),
+    ('Emotional Misalignment', {'{{bot_name}}': '...', '{{user}}': '...', 'Example': ...})
+]
+
+

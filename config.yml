@@ -1,0 +1,73 @@
+input_file: PygmalionAI/pippa-analysis  # either the repo/path for the datasets library, or the /filename.extension
+
+format:
+  bot_name: # string
+  bot_description: # string
+  conversation: # list of dicts order of dicts should be maintained
+    - message:  # string
+      is_human: # bool
+    - message:  # string
+      is_human: # bool
+  # there may be more or less message dicts for each yaml, any lists that may be in other structures defined here should be considered variable in length
+
+step:
+  - step: &html_linebreaks
+      type: ExactReplace
+      config:
+        sequential: true  # performs each of the replacements in the order they're listed from left to right
+        recursive: true  # passes each replacement over every string value multiple times until no matches are found for it, then moves to the next replacement
+        replacements:
+          - [ '<br/>', "\n" ]
+          - [ "\t\n", "\n" ]
+          - [ "\n\n\n", "\n\n" ]
+          - [ '  ', ' ' ]
+          - [ " \\n", "\n" ]
+          - [ "~~~~", "~~~" ]
+          - [ "----", "*" ]
+          - [ "<>", "*" ]
+          - [ "****", "***" ]
+          - [ "....", ">..." ]
+          - [ "!!!!", "!!!" ]
+          - [ "????", "???" ]
+          - [ "?!?!?!", "?!?!" ]
+          - [ "!?!?!?", "!?!?" ]
+          - [ "''", "'" ]
+
+  - step: &trim
+      type: Trim
+      description: "Trim leading and trailing whitespace."
+
+  - step: &strip_unicode
+      type: Encoding
+      description: "Strip unicode sequences not present in ascii. This doesn't affect output encoding."
+      config:
+        codec: us-ascii
+
+  - step: &strip_nonwords
+      type: RegexReplace
+      description: "Consecutive non-word characters"
+      config:
+        dotAll: true
+        multiLine: true
+        replacements:
+          - [ '^(-|,|\||\.|=|_|])\W*(s|\W)+\W(\b|\n)', "" ]
+          - [ '^([w_=x]{5,}|~\+\+~)(\b|\n)', "" ]
+          - [ '^(_|])+(\b|\n)', "" ]
+          - [ '^(\s|\.|,|\|)+', "" ]
+          - [ '([^a-zA-Z0-9 !?\.])\1{4,}', "" ]
+
+  - step: &empty
+      type: FullMatch
+      description: "Drop empty messages."
+      config:
+        key: messages
+        action: drop  # since the message key for each turn has a is_human key associated with it, this would drop the associated key for the specifically empty message
+        patterns: [ "" ]
+
+tokenizer_info:
+  tokenizer: "tokenizer = AutoTokenizer.from_pretrained('mistralai/Mistral-7B-Instruct-v0.2')"
+  keys_to_count: ["bot_name", "bot_description", "value"] # note how messages is listed as a key with a value to count the tokens of, but conversations is not, even though the message key is nested beneath it
+  max_tokens: 4096
+  static_keys: ["bot_name", "bot_description"] # a list of values which are copied into subsequent  yamls constructed from the next set of message turns (maintaining the same format as the structure at the top of this file)
+  FileNameEdit: "_{i}" #adds an underscore and enumeration at the end of the filename before the extension indicating which section of the conversation related to each yaml created to stay below the max tokens
+

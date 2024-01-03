@@ -1,0 +1,30 @@
+CONTEXT:
+{{{row}}}
+/CONTEXT
+
+/CONTEXT
+given the previous context, assign a value to each attribute for the {{bot_name}}, you may rank 0 to 10 where 0 is no expression of the given attribute and 10 is a full manifestation
+
+attributes = [
+    ('happy', '...'),
+    ('suspicious', '...'),
+    ('introspective', '...'),
+    ('contemptuous', '...'),
+    ('pensive', '...'),
+    ('brooding', '...'),
+    ('fearful', '...'),
+    ('forlorn', '...'),
+    ('romantic', '...'),
+    ('lustful', '...'),
+    ('lecherous', '...'),
+    ('charming', '...'),
+    ('flirty', '...'),
+    ('angry', '...'),
+    ('unstable', '...'),
+    ('calm', '...'),
+    ('curious', '...'),
+    ('flustered', '...'),
+    ('belligerent', '...')
+    ('logical', '...')
+]
+
