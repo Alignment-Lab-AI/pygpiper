@@ -66,8 +66,8 @@ step:
 
 tokenizer_info:
   tokenizer: "tokenizer = AutoTokenizer.from_pretrained('mistralai/Mistral-7B-Instruct-v0.2')"
-  keys_to_count: ["bot_name", "bot_description", "value"] # note how messages is listed as a key with a value to count the tokens of, but conversations is not, even though the message key is nested beneath it
+  keys_to_count: ["char", "bot_description", "value"] # note how messages is listed as a key with a value to count the tokens of, but conversations is not, even though the message key is nested beneath it
   max_tokens: 4096
-  static_keys: ["bot_name", "bot_description"] # a list of values which are copied into subsequent  yamls constructed from the next set of message turns (maintaining the same format as the structure at the top of this file)
+  static_keys: ["char", "bot_description"] # a list of values which are copied into subsequent  yamls constructed from the next set of message turns (maintaining the same format as the structure at the top of this file)
   FileNameEdit: "_{i}" #adds an underscore and enumeration at the end of the filename before the extension indicating which section of the conversation related to each yaml created to stay below the max tokens
 
