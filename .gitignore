@@ -2,3 +2,4 @@
 .venv
 requirements-dev.lock
 .env
+.ruff_cache

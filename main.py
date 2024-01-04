@@ -5,9 +5,11 @@ import yaml
 from tqdm import tqdm
 from datasets import load_dataset
 
+
 def read_config(config_file):
     with open(config_file, 'r') as file:
         return yaml.safe_load(file)
+
 
 def convert_to_yaml(data_tuple):
     data, output_dir, row_number = data_tuple
@@ -15,17 +17,20 @@ def convert_to_yaml(data_tuple):
     with open(filename, 'w') as file:
         yaml.dump(data, file)
 
+
 def clean_file(file_path):
     subprocess.run(['python', 'src/clean.py', file_path])
 
+
 def token_count(file_path):
     subprocess.run(['python', 'src/tokencounter.py', file_path])
+
 
 def process_data(config):
     dataset_path = config['input_file']
     base_dir = os.path.dirname(dataset_path)
     dataset_dir = os.path.basename(dataset_path)
-    temp_dataset_path = os.path.join(base_dir, "temp_" + dataset_dir)
+    temp_dataset_path = os.path.join(base_dir, 'temp_' + dataset_dir)
 
     unclean_dir = os.path.join(base_dir, dataset_dir, 'unclean')
     partial_dir = os.path.join(base_dir, dataset_dir, 'partial')
@@ -47,25 +52,35 @@ def process_data(config):
 
     # Convert to YAML step
     if not os.listdir(unclean_dir):
-        print("Converting to YAML...")
+        print('Converting to YAML...')
         args = [(row, unclean_dir, i) for i, row in enumerate(data)]
         with multiprocessing.Pool() as pool:
-            list(tqdm(pool.imap_unordered(convert_to_yaml, args), total=len(args), desc="Converting", unit="file"))
+            list(
+                tqdm(
+                    pool.imap_unordered(convert_to_yaml, args),
+                    total=len(args),
+                    desc='Converting',
+                    unit='file',
+                )
+            )
 
     # Clean files step
     if not os.listdir(partial_dir):
-        print("Cleaning files...")
-        unclean_files = [os.path.join(unclean_dir, f) for f in os.listdir(unclean_dir) if f.endswith('.yaml')]
-        for file in tqdm(unclean_files, desc="Cleaning", unit="file"):
+        print('Cleaning files...')
+        unclean_files = [
+            os.path.join(unclean_dir, f) for f in os.listdir(unclean_dir) if f.endswith('.yaml')
+        ]
+        for file in tqdm(unclean_files, desc='Cleaning', unit='file'):
             clean_file(file)
 
     # Token counting step
     if not os.listdir(final_dir):
-        print("Running token counting...")
+        print('Running token counting...')
         partial_files = [os.path.join(partial_dir)]
-        for file in tqdm(partial_files, desc="Token Counting", unit="file"):
+        for file in tqdm(partial_files, desc='Token Counting', unit='file'):
             token_count(file)
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     config = read_config('config.yml')
     process_data(config)
