@@ -19,13 +19,13 @@ def convert_to_yaml(data_tuple) -> None:
 
 def clean_file(file_path: str) -> None:
     from .clean import clean_data_main
-    
+
     clean_data_main(file_path)
 
 
 def token_count(file_path: str) -> None:
     from .tokencounter import tokencounter
-    
+
     tokencounter(file_path)
 
 

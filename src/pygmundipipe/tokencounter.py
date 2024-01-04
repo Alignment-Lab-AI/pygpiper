@@ -83,5 +83,5 @@ def tokencounter(input_dir: str) -> None:
 
 if __name__ == '__main__':
     input_dir = sys.argv[1]
-    
+
     tokencounter(input_dir)
