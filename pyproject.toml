@@ -1,0 +1,30 @@
+[project]
+name = "pygmundipipe"
+version = "0.1.0"
+description = "the pygmundipipe package"
+dependencies = [
+    "transformers>=4.36.2",
+    "datasets>=2.16.1",
+]
+readme = "README.md"
+requires-python = ">= 3.9"
+
+[project.scripts]
+gmundipipe = "pygmundipipe:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "ruff>=0.1.11",
+    "mypy>=1.8.0",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/autometa_pygmundipipe"]
