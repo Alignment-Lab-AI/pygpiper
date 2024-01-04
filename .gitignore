@@ -3,3 +3,4 @@
 requirements-dev.lock
 .env
 .ruff_cache
+__pycache__
