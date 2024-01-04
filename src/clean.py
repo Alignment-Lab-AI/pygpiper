@@ -125,7 +125,7 @@ def clean_data(input_file, config, output_dir, file_index):
 
     # Reformat the data
     formatted_data = {
-        "bot_name": bot_name,
+        "char": bot_name,
         "bot_description": data.get("bot_description", ""),
         "conversation": updated_conversation
     }
