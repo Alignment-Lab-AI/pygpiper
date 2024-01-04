@@ -5,8 +5,10 @@ import requests
 import time
 import yaml
 from datetime import datetime
+from queue import Queue
+import re
 
-BATCH_SIZE = 20
+BATCH_SIZE = 3
 MAX_RETRIES = 99999999
 RETRY_DELAY = 30
 TOTAL_GENERATIONS = 100000 # Set your desired total number of generations here
@@ -26,6 +28,7 @@ class OpenAI_API:
         print("Initializing...")
         self.session = None
         self.total_generations_processed = 0
+        self.file_queue = multiprocessing.Queue()
 
     def load_templates(self):
         print("Loading templates...")
@@ -44,7 +47,9 @@ class OpenAI_API:
         :param template: A string template to be appended under the YAML content.
         :return: A string with the YAML content followed by the template.
         """
-        return json.dumps(yaml_content) + "\n" + template
+        yaml_string = yaml.dump(yaml_content, allow_unicode=True, default_flow_style=False)
+        populated_template = template.replace('{{{row}}}', yaml_string)
+        return populated_template
 
     def process_yaml_files(self):
         templates = self.load_templates()
@@ -53,40 +58,43 @@ class OpenAI_API:
 
         output_folder = 'aug/output'  # Updated output folder path
 
+        # Load all files into the queue
         for filename in sorted(os.listdir(yaml_folder)):
             if filename.endswith('.yml') or filename.endswith('.yaml'):
+                self.file_queue.put(filename)
+
+        while not self.file_queue.empty() and self.total_generations_processed < TOTAL_GENERATIONS:
+            tasks = []
+            for _ in range(BATCH_SIZE):
+                if self.file_queue.empty() or self.total_generations_processed >= TOTAL_GENERATIONS:
+                    break
+
+                filename = self.file_queue.get()
                 with open(os.path.join(yaml_folder, filename), 'r') as f:
                     yaml_content = yaml.load(f, Loader=yaml.FullLoader)
-                    while self.total_generations_processed < TOTAL_GENERATIONS:
-                        tasks = []
-                        for _ in range(BATCH_SIZE):
-                            if self.total_generations_processed >= TOTAL_GENERATIONS:
-                                break
+                    prompt = self.construct_prompt(yaml_content, templates[template_idx])
 
-                            prompt = self.construct_prompt(yaml_content, templates[template_idx])
-                            template_idx = (template_idx + 1) % len(templates)
+                    task = multiprocessing.Process(target=self.send_prompt, args=(prompt, output_folder, filename, yaml_content, templates[template_idx]))
+                    tasks.append(task)
 
-                            task = multiprocessing.Process(target=self.send_prompt, args=(prompt, output_folder, filename, yaml_content, templates[template_idx]))
-                            tasks.append(task)
+            for task in tasks:
+                task.start()
 
-                        for task in tasks:
-                            task.start()
-
-                        for task in tasks:
-                            task.join()
-
+            for task in tasks:
+                task.join()
 
         print("Processing complete.")    
 
-    def send_prompt(self, prompt, output_folder, filename, yaml_content, template):
+    def send_prompt(self, prompt, output_folder, original_filename, yaml_content, template):
         print(f"Sending prompt...")
         base_url = os.environ.get('OPENAI_API_BASE')
-        url = f"{base_url}/chat/completions"
+        url = f"{base_url}/v1/chat/completions"
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': f"Bearer {os.environ.get('OPENAI_API_KEY')}",        }
+            'Authorization': f"Bearer {os.environ.get('OPENAI_API_KEY')}"
+        }
         data = {
-            "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+            "model": "mixtral",
             "temperature": 0.1,
             "messages": [{"role": "user", "content": prompt}]
         }
@@ -96,16 +104,27 @@ class OpenAI_API:
             if response.status_code == 200:
                 result = response.json()
                 print(f"Received successful response.")
-                print(result)
-                response_data = yaml_content
-                response_data['template'] = template
-                response_data['augmentation'] = result["choices"][0]["message"]["content"]
-                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                output_file = f"{filename}_{timestamp}.jsonl"
-                with open(os.path.join(output_folder, output_file), "w") as outfile:
-                    json.dump(response_data, outfile, indent=4)
-                os.remove(os.path.join('aug/final', filename))
+
+                augmentation = result["choices"][0]["message"]["content"]
+
+                # Detect if the response contains a list-like structure and process it
+                list_match = re.search(r"(\w+)\s*:\s*(\[.*?\])\s*(?![^\[]*\])", augmentation, re.DOTALL)
+                if list_match:
+                    list_name = list_match.group(1)
+                    list_content_str = list_match.group(2)
+                    list_content = yaml.safe_load(list_content_str)
+                    yaml_content[list_name] = list_content
+                else:
+                    yaml_content['augmentation'] = augmentation
+
+                # Write to output file
+                output_filepath = os.path.join(output_folder, f"{original_filename.split('.')[0]}_{self.total_generations_processed}.yaml")
+                with open(output_filepath, 'w') as outfile:
+                    yaml.dump(yaml_content, outfile, allow_unicode=True, default_flow_style=False)
+
                 self.total_generations_processed += 1
+                os.remove(os.path.join('aug/final', original_filename))
+
             elif response.status_code == 429:
                 print(f"Rate limit hit. Retrying after {RETRY_DELAY} seconds...")
                 time.sleep(RETRY_DELAY)
@@ -116,12 +135,6 @@ class OpenAI_API:
                     self.handle_rejection(prompt, error_content)
         except Exception as e:
             print(f"Exception encountered: {e}")
-
-    def handle_rejection(self, prompt, error):
-        print(f"Handling rejection...")
-        rejected_file_path = os.path.join('aug/rejected', f"{prompt}.jsonl")
-        with open(rejected_file_path, "w") as f:
-            f.write(json.dumps({'error': error, 'prompt': prompt}) + '\n')
 
 if __name__ == "__main__":
     api = OpenAI_API()
