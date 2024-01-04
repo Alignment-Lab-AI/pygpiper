@@ -4,7 +4,7 @@ CONTEXT:
 given the previous context rate each speaker from 1-100 on each of the following properties with 1 indicating the property wasnt an issue at all and 100 indicating the property was so pronounced it caused the conversation to become incoherent. in the example key provide a brief explaination for why you gave your score and include advice for improving it. be sure to cite a specific moment in the conversation and advice on how to have a more natural, expressive conversation or roleplay.  avoid considering moral elements assume
 the actual quality of the conversation in terms of realism and narrative depth. BE SURE ALL ADVICE IS CONTAINED IN THE APPROPRIATE EXAMPLE KEY. DO NOT INCLUDE ANYTHING OTHER THAN THE PYTHON LIST IN YOUR RESPONSE
 
-YOUR RESPONSE MUST BE IN THIS PRECISE YAML FORMAT AND CONTAIN EVERY SINGLE PROPERTY IN THIS EXAMPLE:
+YOUR RESPONSE MUST BE IN THIS PRECISE LIST FORMAT AND CONTAIN EVERY SINGLE PROPERTY IN THIS EXAMPLE:
 critiques = [
     {"Incoherent Responses": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
     {"Limited Engagement": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
