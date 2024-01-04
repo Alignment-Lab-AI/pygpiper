@@ -19,8 +19,11 @@ build-backend = "hatchling.build"
 [tool.rye]
 managed = true
 dev-dependencies = [
-    "ruff>=0.1.11",
-    "mypy>=1.8.0",
+    "ruff>=0.1",
+    "mypy>=1.8",
+    "tqdm-stubs>=0.2",
+    "types-PyYAML>=6",
+    "types-requests>=2.31",
 ]
 
 [tool.hatch.metadata]
@@ -28,3 +31,6 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/autometa_pygmundipipe"]
+
+[tool.mypy]
+ignore_missing_imports = true
