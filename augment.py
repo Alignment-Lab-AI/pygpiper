@@ -105,6 +105,7 @@ class OpenAI_API:
                 result = response.json()
                 print(f"Received successful response.")
 
+                # TODO: replace with funcchain
                 augmentation = result["choices"][0]["message"]["content"]
 
                 # Detect if the response contains a list-like structure and process it
