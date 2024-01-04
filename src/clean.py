@@ -45,7 +45,7 @@ def drop_empty_messages(data, key):
 
 from itertools import groupby
 
-def remove_consecutive_duplicates(conversation):
+def remove_consecutive_duplicate_messages(conversation):
     """
     Remove consecutive duplicates from the conversation based on 'message'.
     Only duplicates that are directly following each other are removed.
@@ -64,7 +64,7 @@ def replace_bot_name(data, bot_name):
     return data
         
 
-def clean_data(input_file, config, output_dir, file_index):
+def _clean_data(input_file, config, output_dir, file_index):
     with open(input_file, 'r') as file:
         data = yaml.safe_load(file)
 
@@ -94,7 +94,7 @@ def replace_bot_name_in_message(message, bot_name):
         message = message.replace(bot_name_first_word, '{{char}}')
     return message
 
-def remove_consecutive_duplicates(conversation):
+def remove_consecutive_duplicate_values(conversation):
     """
     Remove consecutive duplicates from the conversation based on 'value'.
     Only duplicates that are directly following each other are removed.
@@ -121,7 +121,7 @@ def clean_data(input_file, config, output_dir, file_index):
         updated_conversation.append(new_message)
 
     # Remove consecutive identical entries
-    updated_conversation = remove_consecutive_duplicates(updated_conversation)
+    updated_conversation = remove_consecutive_duplicate_values(updated_conversation)
 
     # Reformat the data
     formatted_data = {
