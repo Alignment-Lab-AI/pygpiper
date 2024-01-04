@@ -1,10 +1,7 @@
 import yaml
 import os
 import sys
-import transformers
-from transformers import AutoTokenizer
-import itertools
-import torch
+# import torch
 
 def load_config(config_file):
     with open(config_file, 'r') as file:
@@ -13,7 +10,8 @@ def load_config(config_file):
 def load_tokenizer_from_config(config):
     tokenizer_cmd = config['tokenizer_info']['tokenizer']
     exec(tokenizer_cmd, globals())
-    return tokenizer
+    # TODO: this is broken code
+    # return tokenizer
 
 def read_yaml(file_path):
     with open(file_path, 'r') as file:

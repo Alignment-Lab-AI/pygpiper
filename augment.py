@@ -1,11 +1,8 @@
 import os
-import json
 import multiprocessing
 import requests
 import time
 import yaml
-from datetime import datetime
-from queue import Queue
 import re
 
 BATCH_SIZE = 3
