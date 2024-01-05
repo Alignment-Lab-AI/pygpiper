@@ -13,7 +13,9 @@ curl -sSf https://rye-up.com/get | bash
 ```bash
 rye sync
 ```
-
+```bash
+rye shell
+```
 ## Usage
 
 ```bash
