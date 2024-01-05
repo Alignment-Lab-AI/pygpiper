@@ -5,6 +5,7 @@ import requests
 import multiprocessing
 import time
 import re
+from .utils import load_config, read_yaml, write_yaml
 
 BATCH_SIZE = 3
 MAX_RETRIES = 99999999
@@ -31,28 +32,32 @@ def construct_prompt(yaml_content: str, template: str) -> str:
     return populated_template
 
 
-def load_templates() -> list[str]:
-    print('Loading templates...')
-    templates = []
-    for filename in sorted(os.listdir('templates')):
-        if filename.endswith('.txt'):
-            with open(os.path.join('templates', filename), 'r') as f:
-                templates.append(f.read().strip())
-    return templates
-
-
 class OpenAI_API:
     def __init__(self):
         print('Initializing...')
         self.session = None
         self.total_generations_processed = 0
         self.file_queue = multiprocessing.Queue()
+        config = load_config('config.yml')
+        base_dir = config["input_file"]
+        yaml_folder = os.path.join(base_dir, 'final')
+        templates = self.load_templates()
+
+    def load_templates(self) -> list[str]:
+        print('Loading templates...')
+        templates = []
+        for filename in sorted(os.listdir('templates')):
+            if filename.endswith('.txt'):
+                with open(os.path.join('templates', filename), 'r') as f:
+                    templates.append(f.read().strip())
+        return templates
 
     def process_yaml_files(self):
-        templates = load_templates()
-        yaml_folder = 'aug/final'
+        config = load_config('config.yml')
+        base_dir = config["input_file"]
+        yaml_folder = os.path.join(base_dir, 'final')
+        templates = self.load_templates()
         template_idx = 0
-
         output_folder = 'aug/output'  # Updated output folder path
 
         # Load all files into the queue
@@ -111,19 +116,18 @@ class OpenAI_API:
                 result = response.json()
                 print('Received successful response.')
 
-                # TODO: replace with funcchain
                 augmentation = result['choices'][0]['message']['content']
 
-                # Detect if the response contains a list-like structure and process it
-                list_match = re.search(
-                    r'(\w+)\s*:\s*(\[.*?\])\s*(?![^\[]*\])', augmentation, re.DOTALL
-                )
-                if list_match:
-                    list_name = list_match.group(1)
-                    list_content_str = list_match.group(2)
-                    list_content = json.load(list_content_str)
-                    yaml_content[list_name] = list_content
-                else:
+                # Strip newlines
+                augmentation = augmentation.replace('\n', '').replace('\r', '')
+
+                # Detect if the response contains a JSON object
+                try:
+                    json_content = json.loads(augmentation)
+                    # Convert JSON to YAML
+                    yaml_content.update(json_content)
+                except json.JSONDecodeError:
+                    # If not JSON, just add it as a string
                     yaml_content['augmentation'] = augmentation
 
                 # Write to output file
@@ -140,8 +144,8 @@ class OpenAI_API:
                     )
 
                 self.total_generations_processed += 1
-                os.remove(os.path.join('aug/final', original_filename))
-
+                os.remove(os.path.join(yaml_folder, original_filename))
+            
             elif response.status_code == 429:
                 print(f'Rate limit hit. Retrying after {RETRY_DELAY} seconds...')
                 time.sleep(RETRY_DELAY)
@@ -150,8 +154,6 @@ class OpenAI_API:
                 print(
                     f'Failed to get response, status code: {response.status_code}, error: {error_content}'
                 )
-                if response.status_code == 403:
-                    self.handle_rejection(prompt, error_content)
         except Exception as e:
             print(f'Exception encountered: {e}')
 
@@ -162,4 +164,5 @@ def process_yaml_files():
 
 
 if __name__ == '__main__':
-    process_yaml_files()
+    process_yaml_files
+
