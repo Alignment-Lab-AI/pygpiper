@@ -28,9 +28,7 @@ def augment() -> None:
 
 
 @cli.command()
-def tokencounter(
-    input_file: Annotated[str, typer.Argument(help='Input file to count tokens')],
-) -> None:
+def tokencounter() -> None:
     from .tokencounter import tokencounter
 
-    tokencounter(input_file)
+    tokencounter()
