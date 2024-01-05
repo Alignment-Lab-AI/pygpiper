@@ -5,3 +5,4 @@ requirements-dev.lock
 .ruff_cache
 __pycache__
 PygmalionAI/**
+*~
