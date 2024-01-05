@@ -6,10 +6,11 @@ from .utils import load_config, read_yaml, write_yaml
 
 
 def load_tokenizer_from_config(config: dict) -> torch.nn.Module:
-    tokenizer = None
     tokenizer_cmd = config['tokenizer_info']['tokenizer']
-    exec(tokenizer_cmd, globals())
-    return tokenizer  # type: ignore
+    local_vars = {}
+    exec(tokenizer_cmd, globals(), local_vars)
+    return local_vars['tokenizer']  # Extracting tokenizer from the local_vars dictionary
+
 
 
 def count_tokens(data, tokenizer, keys_to_count):
@@ -74,11 +75,10 @@ def process_files(input_dir, output_dir, config, batch_size=1000):
 
 def tokencounter(input_dir: Optional[str] = None) -> None:
     config = load_config('config.yml')
-    input_dir = input_dir or config['tokenizer_info']['input_dir']
-    base_dir = os.path.dirname(input_dir)
+    base_dir = config["input_file"]
     output_dir = os.path.join(base_dir, 'final')
     os.makedirs(output_dir, exist_ok=True)
-
+    input_dir = os.path.join(base_dir, "partial")
     process_files(input_dir, output_dir, config)
 
 
