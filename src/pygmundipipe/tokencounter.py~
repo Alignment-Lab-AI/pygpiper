@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 import torch
-from transformers import AutoTokenizer
+from transformers import Autotokenizer
 from .utils import load_config, read_yaml, write_yaml
 
 
