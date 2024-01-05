@@ -72,8 +72,9 @@ def process_files(input_dir, output_dir, config, batch_size=1000):
             write_yaml(new_data, os.path.join(output_dir, output_file_name))
 
 
-def tokencounter(input_dir: str) -> None:
+def tokencounter() -> None:
     config = load_config('config.yml')
+    input_dir = config['tokenizer_info']['input_dir']
     base_dir = os.path.dirname(input_dir)
     output_dir = os.path.join(base_dir, 'final')
     os.makedirs(output_dir, exist_ok=True)
@@ -82,6 +83,4 @@ def tokencounter(input_dir: str) -> None:
 
 
 if __name__ == '__main__':
-    input_dir = sys.argv[1]
-
-    tokencounter(input_dir)
+    tokencounter()
