@@ -2,10 +2,9 @@ import os
 import yaml
 import json
 import requests
-import multiprocessing
+from multiprocessing import Pool
 import time
-import re
-from .utils import load_config, read_yaml, write_yaml
+from .utils import load_config
 
 BATCH_SIZE = 3
 MAX_RETRIES = 99999999
@@ -37,11 +36,10 @@ class OpenAI_API:
         print('Initializing...')
         self.session = None
         self.total_generations_processed = 0
-        self.file_queue = multiprocessing.Queue()
         config = load_config('config.yml')
-        base_dir = config["input_file"]
-        yaml_folder = os.path.join(base_dir, 'final')
-        templates = self.load_templates()
+        self.base_dir = config["input_file"]
+        self.yaml_folder = os.path.join(self.base_dir, 'final')
+        self.templates = self.load_templates()
 
     def load_templates(self) -> list[str]:
         print('Loading templates...')
@@ -61,51 +59,36 @@ class OpenAI_API:
         output_folder = 'aug/output'  # Updated output folder path
 
         # Load all files into the queue
-        for filename in sorted(os.listdir(yaml_folder)):
-            if filename.endswith('.yml') or filename.endswith('.yaml'):
-                self.file_queue.put(filename)
+        filenames = sorted([filename for filename in os.listdir(yaml_folder) if filename.endswith('.yml') or filename.endswith('.yaml')])
 
-        while not self.file_queue.empty() and self.total_generations_processed < TOTAL_GENERATIONS:
-            tasks = []
-            for _ in range(BATCH_SIZE):
-                if self.file_queue.empty() or self.total_generations_processed >= TOTAL_GENERATIONS:
-                    break
-
-                filename = self.file_queue.get()
-                with open(os.path.join(yaml_folder, filename), 'r') as f:
-                    yaml_content = yaml.load(f, Loader=yaml.FullLoader)
-                    prompt = construct_prompt(yaml_content, templates[template_idx])
-
-                    task = multiprocessing.Process(
-                        target=self.send_prompt,
-                        args=(
-                            prompt,
-                            output_folder,
-                            filename,
-                            yaml_content,
-                            templates[template_idx],
-                        ),
-                    )
-                    tasks.append(task)
-
-            for task in tasks:
-                task.start()
-
-            for task in tasks:
-                task.join()
+        with Pool(BATCH_SIZE) as p:
+            p.map(self.process_file, filenames)
 
         print('Processing complete.')
+
+    def process_file(self, filename):
+        with open(os.path.join(self.yaml_folder, filename), 'r') as f:
+            yaml_content = yaml.load(f, Loader=yaml.FullLoader)
+            prompt = construct_prompt(yaml_content, self.templates[0])
+
+            self.send_prompt(
+                prompt,
+                'aug/output',
+                filename,
+                yaml_content,
+                self.templates[0],
+            )
 
     def send_prompt(self, prompt, output_folder, original_filename, yaml_content, template):
         print('Sending prompt...')
         base_url = os.environ.get('OPENAI_API_BASE')
-        url = f'{base_url}/v1/chat/completions'
+        url = f'{base_url}/chat/completions'
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f"Bearer {os.environ.get('OPENAI_API_KEY')}",
         }
         data = {
-            'model': 'mixtral',
+            'model': 'gpt-4',  # 'mixtral',
             'temperature': 0.1,
             'messages': [{'role': 'user', 'content': prompt}],
         }
@@ -144,7 +127,7 @@ class OpenAI_API:
                     )
 
                 self.total_generations_processed += 1
-                os.remove(os.path.join(yaml_folder, original_filename))
+                os.remove(os.path.join(self.yaml_folder, original_filename))
             
             elif response.status_code == 429:
                 print(f'Rate limit hit. Retrying after {RETRY_DELAY} seconds...')
@@ -164,5 +147,5 @@ def process_yaml_files():
 
 
 if __name__ == '__main__':
-    process_yaml_files
+    process_yaml_files()
 
