@@ -1,13 +1,12 @@
 import os
 from typing import Optional
 import torch
-from transformers import AutoTokenizer
 from .utils import load_config, read_yaml, write_yaml
 
 
 def load_tokenizer_from_config(config: dict) -> torch.nn.Module:
     tokenizer_cmd = config['tokenizer_info']['tokenizer']
-    local_vars = {}
+    local_vars: dict = {}
     exec(tokenizer_cmd, globals(), local_vars)
     return local_vars['tokenizer']  # Extracting tokenizer from the local_vars dictionary
 
