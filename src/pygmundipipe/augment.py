@@ -21,33 +21,31 @@ if not os.path.exists('templates'):
     os.makedirs('templates')
 
 
+def construct_prompt(yaml_content: str, template: str) -> str:
+    """
+    Constructs a prompt by appending the template to the YAML content.
+    """
+    yaml_string = yaml.dump(yaml_content, allow_unicode=True, default_flow_style=False)
+    populated_template = template.replace('{{{row}}}', yaml_string)
+    return populated_template
+
+
+def load_templates() -> list[str]:
+    print('Loading templates...')
+    templates = []
+    for filename in sorted(os.listdir('templates')):
+        if filename.endswith('.txt'):
+            with open(os.path.join('templates', filename), 'r') as f:
+                templates.append(f.read().strip())
+    return templates
+
+
 class OpenAI_API:
     def __init__(self):
         print('Initializing...')
         self.session = None
         self.total_generations_processed = 0
         self.file_queue = multiprocessing.Queue()
-
-    def load_templates(self):
-        print('Loading templates...')
-        templates = []
-        for filename in sorted(os.listdir('templates')):
-            if filename.endswith('.txt'):
-                with open(os.path.join('templates', filename), 'r') as f:
-                    templates.append(f.read().strip())
-        return templates
-
-    def construct_prompt(self, yaml_content, template):
-        """
-        Constructs a prompt by appending the template to the YAML content.
-
-        :param yaml_content: A string containing the content of a YAML file.
-        :param template: A string template to be appended under the YAML content.
-        :return: A string with the YAML content followed by the template.
-        """
-        yaml_string = yaml.dump(yaml_content, allow_unicode=True, default_flow_style=False)
-        populated_template = template.replace('{{{row}}}', yaml_string)
-        return populated_template
 
     def process_yaml_files(self):
         templates = self.load_templates()
@@ -70,7 +68,7 @@ class OpenAI_API:
                 filename = self.file_queue.get()
                 with open(os.path.join(yaml_folder, filename), 'r') as f:
                     yaml_content = yaml.load(f, Loader=yaml.FullLoader)
-                    prompt = self.construct_prompt(yaml_content, templates[template_idx])
+                    prompt = construct_prompt(yaml_content, templates[template_idx])
 
                     task = multiprocessing.Process(
                         target=self.send_prompt,
