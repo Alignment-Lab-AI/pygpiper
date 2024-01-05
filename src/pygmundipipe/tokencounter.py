@@ -1,5 +1,5 @@
 import os
-import sys
+from typing import Optional
 import torch
 
 from .utils import load_config, read_yaml, write_yaml
@@ -72,9 +72,9 @@ def process_files(input_dir, output_dir, config, batch_size=1000):
             write_yaml(new_data, os.path.join(output_dir, output_file_name))
 
 
-def tokencounter() -> None:
+def tokencounter(input_dir: Optional[str] = None) -> None:
     config = load_config('config.yml')
-    input_dir = config['tokenizer_info']['input_dir']
+    input_dir = input_dir or config['tokenizer_info']['input_dir']
     base_dir = os.path.dirname(input_dir)
     output_dir = os.path.join(base_dir, 'final')
     os.makedirs(output_dir, exist_ok=True)
