@@ -4,7 +4,7 @@ Augmentation pipeline.
 
 ## Installation
 
-First [install rye](https://rye-up.com/) and then run:
+First [install rye](https://rye-up.com/) by running:
 
 ```bash
 curl -sSf https://rye-up.com/get | bash
