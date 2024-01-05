@@ -70,4 +70,4 @@ tokenizer_info:
   max_tokens: 4096
   static_keys: ["char", "bot_description"] # a list of values which are copied into subsequent  yamls constructed from the next set of message turns (maintaining the same format as the structure at the top of this file)
   FileNameEdit: "_{i}" #adds an underscore and enumeration at the end of the filename before the extension indicating which section of the conversation related to each yaml created to stay below the max tokens
-
+  input_dir: "PygmalionAI/pippa-analysis/final"
