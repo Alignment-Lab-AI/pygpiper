@@ -1,8 +1,9 @@
 import os
-import multiprocessing
-import requests
-import time
 import yaml
+import json
+import requests
+import multiprocessing
+import time
 import re
 
 BATCH_SIZE = 3
@@ -120,7 +121,7 @@ class OpenAI_API:
                 if list_match:
                     list_name = list_match.group(1)
                     list_content_str = list_match.group(2)
-                    list_content = yaml.safe_load(list_content_str)
+                    list_content = json.load(list_content_str)
                     yaml_content[list_name] = list_content
                 else:
                     yaml_content['augmentation'] = augmentation
