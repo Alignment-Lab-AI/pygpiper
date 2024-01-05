@@ -48,7 +48,7 @@ class OpenAI_API:
         self.file_queue = multiprocessing.Queue()
 
     def process_yaml_files(self):
-        templates = self.load_templates()
+        templates = load_templates()
         yaml_folder = 'aug/final'
         template_idx = 0
 
