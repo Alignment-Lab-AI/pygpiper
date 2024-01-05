@@ -88,7 +88,7 @@ class OpenAI_API:
             'Authorization': f"Bearer {os.environ.get('OPENAI_API_KEY')}",
         }
         data = {
-            'model': 'gpt-4',  # 'mixtral',
+            'model': 'mixtral',
             'temperature': 0.1,
             'messages': [{'role': 'user', 'content': prompt}],
         }
