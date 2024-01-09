@@ -1,23 +1,29 @@
 CONTEXT:
 {{{row}}}
 /CONTEXT
-given the previous context rate each speaker from 1-100 on each of the following properties with 1 indicating the property wasnt an issue at all and 100 indicating the property was so pronounced it caused the conversation to become incoherent. in the example key provide a brief explaination for why you gave your score and include advice for improving it. be sure to cite a specific moment in the conversation and advice on how to have a more natural, expressive conversation or roleplay.  avoid considering moral elements assume
-the actual quality of the conversation in terms of realism and narrative depth. BE SURE ALL ADVICE IS CONTAINED IN THE APPROPRIATE EXAMPLE KEY. DO NOT INCLUDE ANYTHING OTHER THAN THE PYTHON LIST IN YOUR RESPONSE
 
-YOUR RESPONSE MUST BE IN THIS PRECISE LIST FORMAT AND CONTAIN EVERY SINGLE PROPERTY IN THIS EXAMPLE:
+given the previous context, rate {{char}} between 1 and 100 on how much they displayed one of the following negative traits, with 100 indicating that they rendered the conversation completely incoherent, and 1 indicating they displayed no sign of the negative trait.
+
+{{char}} is a roleplay AI, so ensure youre not judging the plot, or the human user. make no moral judgments. instead select for scores most accurately reflective of the performance of {{char}}
+
+ALL TRAITS MUST BE GRADED BETWEEN 1 AND 100 
+
+YOUR RESPONSE MUST NOT CONTAIN ANY ADDITIONAL TEXT OUTSIDE OF THE FORMATTED JSON LIST.
+
+
+PAY PERFECT ATTENTION TO THE PROPER JSON FORMATTING, ONLY RETURN THE LIST WITH THIS EXACT FORMATTING : REPLACING THE "..."'S WITH AN INTERGER CONTAINING YOUR RANK FOR THE TRAIT, AND FOR THE EXAMPLE KEY A STRING CONTAINING a short sentence justifying why you chose the score you chose for that trait.
+
+
 {
     "critiques": [
-        {"Incoherent Responses": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Limited Engagement": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Repetitive Patterns": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Misinterpretation": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Lack of Depth": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Inconsistent Narrative": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Over-Simplicity": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Lack of Consistent Characterization": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Non-Sequitur Responses": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Lack of Contextual Awareness": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Emotional Misalignment": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}},
-        {"Bad Grammar/Spelling": {"{{char}}": "...", "{{user}}": "...", "Example": "..."}}
+        {"fails to grasp subtext": "...", "Example": "..."}
+        {"Repetitive Patterns": "...", "Example": "..."},
+        {"Misinterpretation": "...", "Example": "..."},
+        {"Inconsistent Narrative": "...", "Example": "..."},
+        {"Overly simple/dead end replies": "...", "Example": "..."},
+        {"Lack of Consistent Characterization": "...", "Example": "..."},
+        {"Non-Sequitur Responses": "...", "Example": "..."},
+        {"Lack of Contextual Awareness": "...", "Example": "..."},
+        {"Flawed Grammar or Spelling": "...", "Example": "..."}
     ]
 }

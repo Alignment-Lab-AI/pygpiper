@@ -6,3 +6,4 @@ requirements-dev.lock
 __pycache__
 PygmalionAI/**
 *~
+aug/**

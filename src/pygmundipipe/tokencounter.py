@@ -2,7 +2,7 @@ import os
 from typing import Optional
 import torch
 from .utils import load_config, read_yaml, write_yaml
-
+from transformers import AutoTokenizer
 
 def load_tokenizer_from_config(config: dict) -> torch.nn.Module:
     tokenizer_cmd = config['tokenizer_info']['tokenizer']

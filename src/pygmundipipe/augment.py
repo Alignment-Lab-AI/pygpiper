@@ -6,10 +6,10 @@ from multiprocessing import Pool
 import time
 from .utils import load_config
 
-BATCH_SIZE = 3
+BATCH_SIZE = 12
 MAX_RETRIES = 99999999
 RETRY_DELAY = 30
-TOTAL_GENERATIONS = 100000  # Set your desired total number of generations here
+TOTAL_GENERATIONS = 10000000  # Set your desired total number of generations here
 
 # Directories setup
 if not os.path.exists('aug/output'):
@@ -67,17 +67,29 @@ class OpenAI_API:
         print('Processing complete.')
 
     def process_file(self, filename):
-        with open(os.path.join(self.yaml_folder, filename), 'r') as f:
-            yaml_content = yaml.load(f, Loader=yaml.FullLoader)
+        retries = 0
+        while retries < MAX_RETRIES:
+            with open(os.path.join(self.yaml_folder, filename), 'r') as f:
+                yaml_content = yaml.load(f, Loader=yaml.FullLoader)
             prompt = construct_prompt(yaml_content, self.templates[0])
 
-            self.send_prompt(
+            success = self.send_prompt(
                 prompt,
                 'aug/output',
                 filename,
                 yaml_content,
                 self.templates[0],
             )
+
+            if success:
+                break  # Break the loop if send_prompt was successful
+            else:
+                print(f'Retrying {filename}, attempt {retries + 1}/{MAX_RETRIES}...')
+                retries += 1  # Increment the retry counter
+
+        if retries >= MAX_RETRIES:
+            print(f'Max retries reached for file: {filename}')
+
 
     def send_prompt(self, prompt, output_folder, original_filename, yaml_content, template):
         print('Sending prompt...')
@@ -88,57 +100,62 @@ class OpenAI_API:
             'Authorization': f"Bearer {os.environ.get('OPENAI_API_KEY')}",
         }
         data = {
-            'model': 'mixtral',
-            'temperature': 0.1,
+            'model': 'TheBloke/Mixtral-8x7B-Instruct-v0.1-GPTQ',
+            'temperature': 0.3,
             'messages': [{'role': 'user', 'content': prompt}],
         }
 
         try:
             response = requests.post(url, headers=headers, json=data)
             if response.status_code == 200:
-                result = response.json()
-                print('Received successful response.')
-
-                augmentation = result['choices'][0]['message']['content']
-
-                # Strip newlines
-                augmentation = augmentation.replace('\n', '').replace('\r', '')
-
-                # Detect if the response contains a JSON object
                 try:
+                    result = response.json()
+                    print('Received successful response.')
+
+                    augmentation = result['choices'][0]['message']['content']
                     json_content = json.loads(augmentation)
-                    # Convert JSON to YAML
+
+                    # Successfully parsed JSON, update yaml_content and proceed
                     yaml_content.update(json_content)
-                except json.JSONDecodeError:
-                    # If not JSON, just add it as a string
-                    yaml_content['augmentation'] = augmentation
 
-                # Write to output file
-                output_filepath = os.path.join(
-                    output_folder,
-                    f"{original_filename.split('.')[0]}_{self.total_generations_processed}.yaml",
-                )
-                with open(output_filepath, 'w') as outfile:
-                    yaml.dump(
-                        yaml_content,
-                        outfile,
-                        allow_unicode=True,
-                        default_flow_style=False,
+                    # Write to output file
+                    output_filepath = os.path.join(
+                        output_folder,
+                        f"{original_filename.split('.')[0]}_{self.total_generations_processed}.yaml",
                     )
+                    with open(output_filepath, 'w') as outfile:
+                        yaml.dump(
+                            yaml_content,
+                            outfile,
+                            allow_unicode=True,
+                            default_flow_style=False,
+                        )
 
-                self.total_generations_processed += 1
-                os.remove(os.path.join(self.yaml_folder, original_filename))
-            
-            elif response.status_code == 429:
-                print(f'Rate limit hit. Retrying after {RETRY_DELAY} seconds...')
-                time.sleep(RETRY_DELAY)
+                    self.total_generations_processed += 1
+                    os.remove(os.path.join(self.yaml_folder, original_filename))
+
+                    return True  # Successful response and JSON parsing
+
+                except json.JSONDecodeError:
+                    # Handle JSON parsing error
+                    print('\033[93mFailed to parse JSON. Retrying...\033[0m')  # Highlighted text
+                    time.sleep(RETRY_DELAY)
+                    return False  # Indicate failure due to JSON parsing error
+
             else:
-                error_content = response.text
-                print(
-                    f'Failed to get response, status code: {response.status_code}, error: {error_content}'
-                )
+                # Handle any non-200 response
+                print(f'\033[91mError with status code: {response.status_code}, response: {response.text}. Retrying...\033[0m')  # Highlighted text
+                time.sleep(RETRY_DELAY)
+                return False  # Indicate failure due to non-200 response
+
         except Exception as e:
-            print(f'Exception encountered: {e}')
+            # Handle any exceptions
+            print(f'\033[91mException encountered: {e}. Retrying...\033[0m')  # Highlighted text
+            time.sleep(RETRY_DELAY)
+            return False  # Indicate failure due to exception
+
+
+
 
 
 def process_yaml_files():
